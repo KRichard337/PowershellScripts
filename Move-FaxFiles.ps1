@@ -5,7 +5,7 @@
 	 Created on:   	1/21/2021 2:45 PM
 	 Created by:   	Kevin Richard
 	 Organization: 	
-	 Filename:     	Move-OGHFaxFiles
+	 Filename:     	Move-FaxFiles
 	===========================================================================
 	.DESCRIPTION
 		Moves files between folder structures. Will create destination folder if it doesn't exist.
