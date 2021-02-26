@@ -26,11 +26,10 @@ $Source = #UNC path for source folder tree
 $Destination = #PSDrive Name
 $FaxFileExtension = "*.TIF"
 
-$PendingFaxes = Get-ChildItem -LiteralPath $Source -Recurse -Filter $FaxFileExtension 
-$Folders = Get-ChildItem -LiteralPath $Source -Depth 0 | Where-Object { $_.PsIsContainer -and $_.GetFiles().Count }
+$Folders = Get-ChildItem -LiteralPath $Source -Depth 0 | Where-Object { $_.PsIsContainer -and $_.GetFiles($FaxFileExtension).Count }
 
 #Exit script if there are no files to transfer
-if (($Folders.Count -eq 0) -or ($PendingFaxes.Count -eq 0))
+if ($Folders.Count -eq 0)
 {
 	exit
 } #IF
