@@ -36,22 +36,21 @@
 
 #>
 
-function Add-FolderPermission
-{
+function Add-FolderPermission {
 	[CmdletBinding()]
 	param (
-		[Parameter(Mandatory = $true,
-				   ValueFromPipelineByPropertyName = $true)]
-		[System.String]$FolderPath,
+		[Parameter(Mandatory,
+			ValueFromPipelineByPropertyName)]
+		[String]$FolderPath,
 		
-		[Parameter(Mandatory = $true,
-				   ValueFromPipelineByPropertyName = $true)]
-		[System.String]$Group,
+		[Parameter(Mandatory,
+			ValueFromPipelineByPropertyName)]
+		[String]$Group,
 		
-		[Parameter(Mandatory = $true,
-				   ValueFromPipelineByPropertyName = $true)]
-		[ValidateSet("Read", "Write", "Full")]
-		[System.String]$Access,
+		[Parameter(Mandatory,
+			ValueFromPipelineByPropertyName)]
+		[ValidateSet('Read', 'Write', 'Full')]
+		[String]$Access,
 		
 		[switch]$NoInheritance,
 		
@@ -60,43 +59,37 @@ function Add-FolderPermission
 	
 	BEGIN { }
 	
-	PROCESS
-	{
+	PROCESS {
 		
-		switch ($Access)
-		{
-			'Read' { $Rights = "ReadandExecute", "Traverse" }
-			'Write' { $Rights = "ReadandExecute", "Traverse", "Write" }
-			'Full' { $Rights = "FullControl" }
+		switch ($Access) {
+			'Read' { $Rights = 'ReadandExecute', 'Traverse' }
+			'Write' { $Rights = 'ReadandExecute', 'Traverse', 'Write' }
+			'Full' { $Rights = 'FullControl' }
 		}
 		
-		if ($PSBoundParameters.ContainsKey('NoInheritance'))
-		{
+		if ($PSBoundParameters.ContainsKey('NoInheritance')) {
 			$Inheritance = 'None'
 			$Propagation = 'InheritOnly'
 		}
-		else
-		{
-			$Inheritance = "ContainerInherit,ObjectInherit"
-			$Propagation = "None"
+		else {
+			$Inheritance = 'ContainerInherit,ObjectInherit'
+			$Propagation = 'None'
 		}
-		try
-		{
-			if (-not (Test-Path $FolderPath))
-			{
-				throw "Folder path does not exist"
+		try {
+			if (-not (Test-Path $FolderPath)) {
+				throw 'Folder path does not exist'
 			}
 			
 
-				Write-Verbose "Adding $Access for $Group to $FolderPath"
-				$ACERule = New-Object System.Security.AccessControl.FileSystemAccessRule($Group, $Rights, $Inheritance, $Propagation, "Allow")
-				$acl = Get-Acl $FolderPath
-				$acl.SetAccessRule($ACERule)
-				$acl | Set-Acl $FolderPath
+			Write-Verbose "Adding $Access for $Group to $FolderPath"
+			$ACERule = New-Object System.Security.AccessControl.FileSystemAccessRule($Group, $Rights, $Inheritance, $Propagation, 'Allow')
+			$acl = Get-Acl $FolderPath
+			$acl.SetAccessRule($ACERule)
+			$acl | Set-Acl $FolderPath
 			
 			$props = @{
-				'Group'  = $Group
-				'Rights' = $Rights
+				'Group'       = $Group
+				'Rights'      = $Rights
 				'Inheritance' = $Inheritance
 				'Propagation' = $Propagation
 			}
@@ -105,16 +98,13 @@ function Add-FolderPermission
 			
 			Write-Output $obj
 		} # TRY
-		catch
-		{
-			if ($PSBoundParameters.ContainsKey('LogFailuresToPath'))
-			{
+		catch {
+			if ($PSBoundParameters.ContainsKey('LogFailuresToPath')) {
 				Write-Verbose "Logging to $LogFailuresToPath"
 				$FolderPath | Out-File -FilePath $LogFailuresToPath -Encoding ascii -Append
 			}
 			
-			else
-			{
+			else {
 				Write-Verbose 'Output Error to console'
 				Write-Error $_
 			}

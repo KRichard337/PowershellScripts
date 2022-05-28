@@ -17,29 +17,26 @@ param (
 	[string[]]$Group,
 	
 	[Parameter(Mandatory = $true)]
-	[ValidatePattern("[\w-]+@\w+.\w+")]
+	[ValidatePattern('[\w-]+@\w+.\w+')]
 	[string[]]$EmailTo,
 	
 	[Parameter(Mandatory = $true)]
-	[ValidatePattern("[\w-]+@\w+.\w+")]
+	[ValidatePattern('[\w-]+@\w+.\w+')]
 	[string]$EmailFrom,
 	
 	[Parameter(Mandatory = $true)]
 	[string]$SMTPServer
 	
 )
-$Output = foreach ($Name in $Group)
-{
+$Output = foreach ($Name in $Group) {
 	$item = Get-ADGroupMember $Name | Select-Object -ExpandProperty name | Sort-Object
-	write-output "$name`n==============`n" $item "`n"
+	Write-Output "$name`n==============`n" $item "`n"
 }
 
-if ($Output.count -lt 1)
-{
+if ($Output.count -lt 1) {
 	Write-Error "No users found for $Group"
 }
-else
-{
+else {
 	
-	Send-MailMessage -From $EmailFrom -To $EmailTo -Subject "User Membership Report" -Body ($Output | Out-String) -SmtpServer $SMTPServer
+	Send-MailMessage -From $EmailFrom -To $EmailTo -Subject 'User Membership Report' -Body ($Output | Out-String) -SmtpServer $SMTPServer
 }
