@@ -15,14 +15,14 @@ $Expired = foreach ($item in $OU) {
 }
 $termdate = Get-Date -Format yyyyMMdd
 $exportpath = "$Path$TermDate.csv" 
-#Adding Field to input last login for email.
-$expired | Add-Member -Name 'MailLogon' -MemberType NoteProperty -Value $null
 
 if ($PSBoundParameters.ContainsKey('CheckExchange')) {
 	$user = 'automationuser@opelousasgeneral.com'
 	$file = 'C:\Scripts\cred\365.txt'
 	$ExchangeAdmin = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user, (Get-Content $file | ConvertTo-SecureString)
 	Connect-ExchangeOnlineShell -Credential $ExchangeAdmin
+	#Adding Field to input last login for email.
+	$expired | Add-Member -Name 'MailLogon' -MemberType NoteProperty -Value $null
 
 	foreach ($mailbox in $expired) {
 		$mailbox.MailLogon = Get-MailboxStatistics -Identity $mailbox.userprincipalname | Select-Object -ExpandProperty LastLogonTime
