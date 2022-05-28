@@ -1,11 +1,19 @@
 ﻿param(
 	[string[]]$OU,
 
+	[string]$DisabledUsersOU,
+
 	[int]$LookBackDays = 180,
 
 	[string]$Path,
 
-	[switch]$CheckExchange
+	[switch]$CheckExchange,
+
+	[string]$ToEmail,
+
+	[string]$FromEmail,
+
+	[string]$SMTPServer
 )
 
 $date = (Get-Date).AddDays(-$LookBackDays)
@@ -13,12 +21,12 @@ $UserProps = @('name', 'samaccountname', 'title', 'department', 'lastlogondate',
 $Expired = foreach ($item in $OU) {
 	Get-ADUser -SearchBase $item -filter { (lastlogondate -notlike '*' -or lastlogondate -le $date) -and (enabled -eq $True) -and (whencreated -le $date) -and (modified -le $date) } -Properties $UserProps | Select-Object -Property $UserProps
 }
-$termdate = Get-Date -Format yyyyMMdd
+$TermDate = Get-Date -Format yyyyMMdd
 $exportpath = "$Path$TermDate.csv" 
 
 if ($PSBoundParameters.ContainsKey('CheckExchange')) {
-	$user = 'automationuser@opelousasgeneral.com'
-	$file = 'C:\Scripts\cred\365.txt'
+	$user = #ExchangeAdminAccontName
+	$file = #PathToCredentialFile
 	$ExchangeAdmin = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user, (Get-Content $file | ConvertTo-SecureString)
 	Connect-ExchangeOnlineShell -Credential $ExchangeAdmin
 	#Adding Field to input last login for email.
@@ -34,15 +42,18 @@ if ($PSBoundParameters.ContainsKey('CheckExchange')) {
 if ($expired.count -eq 0) { exit }
 
 foreach ($user in $expired) {
-	Set-ADUser $user.samaccountname -Description "Disabled $termdate by ADTidy Script" -Enabled $false
-	Get-ADUser $user.samaccountname | Move-ADObject -TargetPath 'ou=inactive users,dc=oghs,dc=local'
+	Set-ADUser $user.samaccountname -Description "Disabled $TermDate by ADTidy Script" -Enabled $false
+
+	if ($PSBoundParameters.ContainsKey('DisabledUsersOU')) {
+		Get-ADUser $user.samaccountname | Move-ADObject -TargetPath $DisabledUsersOU
+	}
 }
 	
 $expired | Sort-Object -Property Name | Export-Csv -Path $exportpath -NoTypeInformation
 $emailbody = 'See attached File for list of disabled users'
-Send-MailMessage -To identitymanagement@opelousasgeneral.com `
-	-From alerts@opelousasgeneral.com `
+Send-MailMessage -To $ToEmail `
+	-From $FromEmail `
 	-Subject "$($disableusers.count) users disabled due to inactivity" `
 	-Body " $emailbody "`
-	-SmtpServer azureconnectsvr.oghs.local `
+	-SmtpServer $SMTPServer `
 	-Attachments $exportpath
