@@ -33,7 +33,7 @@ foreach ($computer in $CSVPath) {
 			-From $FromAddress `
 			-Subject "$name failed connectivity check" `
 			-Body "$name failed connectivity check. Check if powered on." `
-			-SmtpServer azureconnectsvr.oghs.local
+			-SmtpServer $SMTPServer
 		
 		$computer.status = 'Failed connectivity check. Check if powered on.'
 	}
